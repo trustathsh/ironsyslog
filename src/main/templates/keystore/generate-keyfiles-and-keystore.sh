@@ -1,5 +1,5 @@
 #!/bin/bash
-toolname=irontemplate
+toolname=ironsyslog
 
 echo "Toolname =" $toolname
 

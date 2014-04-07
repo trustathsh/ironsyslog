@@ -9,13 +9,13 @@
 
 	<!-- general project information -->
 	<groupId>de.hshannover.f4.trust</groupId>
-	<artifactId>irontemplate</artifactId>
-	<version>0.0.2</version>
+	<artifactId>ironsyslog</artifactId>
+	<version>0.0.1</version>
 	<packaging>jar</packaging>
-	<name>irontemplate</name>
+	<name>ironsyslog</name>
 	<url>http://trust.f4.hs-hannover.de</url>
 	<description>
-		An template project for a ifmapj-based IF-MAP client.
+		TBA
 	</description>
 	<organization>
 		<name>Trust@HsH</name>
@@ -42,7 +42,7 @@
 
 	<contributors>
 		<contributor>
-			<name>Bastian Hellmann</name>
+			<name>Leonard Renners</name>
 		</contributor>
 	</contributors>
 
@@ -64,8 +64,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.3.2</version>
 				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
+					<source>1.7</source>
+					<target>1.7</target>
 				</configuration>
 			</plugin>
 
@@ -76,7 +76,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>de.hshannover.f4.trust.irontemplate.Client</mainClass>
+							<mainClass>de.hshannover.f4.trust.ironsyslog.IronSyslog</mainClass>
 							<addClasspath>true</addClasspath>
 						</manifest>
 						<manifestEntries>

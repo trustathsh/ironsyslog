@@ -1,2 +1,2 @@
 #!/bin/sh
-java -jar irontemplate.jar $*
+java -jar ironsyslog.jar $*
