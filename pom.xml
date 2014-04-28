@@ -127,6 +127,11 @@
 			<version>1.0.1</version>
 		</dependency>
 		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.7.7</version>
+		</dependency>
+		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 			<version>1.2.17</version>
@@ -137,5 +142,38 @@
 			<version>4.8.2</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.nesscomputing</groupId>
+			<artifactId>ness-syslog4j</artifactId>
+			<version>0.9.47-NESS-8</version>
+		</dependency>
+		<dependency>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna</artifactId>
+			<version>4.1.0</version>
+		</dependency>
+
+		<!-- Drools Dependencies -->
+		<dependency>
+			<groupId>org.drools</groupId>
+			<artifactId>drools-core</artifactId>
+			<version>5.6.0.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.drools</groupId>
+			<artifactId>drools-compiler</artifactId>
+			<version>5.6.0.Final</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.drools</groupId>
+			<artifactId>drools-pipeline</artifactId>
+			<version>5.6.0.Final</version>
+		</dependency>
+
+		<!-- <dependency> <groupId>com.espertech</groupId> <artifactId>esper</artifactId> 
+			<version>4.11.0</version> </dependency> -->
+
+
 	</dependencies>
 </project>

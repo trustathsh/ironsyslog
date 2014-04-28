@@ -1,0 +1,22 @@
+import com.nesscomputing.syslog4j.server.impl.event.SyslogServerEvent
+import com.nesscomputing.syslog4j.SyslogLevel
+import de.hshannover.f4.trust.ironsyslog.ifmap.IronSyslogPublisher
+
+declare SyslogServerEvent
+@role(event)
+@timestamp(date)
+end
+
+rule "TEST trans"
+when
+	$se:SyslogServerEvent()
+then
+	System.out.println("{" + $se.getFacility() + "} " + $se.getDate() + " " + $se.getLevel() + " " + $se.getMessage());
+end
+
+rule "Test IFMAP"
+when 
+	$se:SyslogServerEvent()
+then
+	IronSyslogPublisher.publishBinky($se);
+end

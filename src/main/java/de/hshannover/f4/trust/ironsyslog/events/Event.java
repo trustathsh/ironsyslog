@@ -36,3 +36,15 @@
  * limitations under the License.
  * #L%
  */
+
+package de.hshannover.f4.trust.ironsyslog.events;
+
+/**
+ * Super Event class. Not really in use yet.
+ * 
+ * @author Leonard Renners
+ * 
+ */
+public class Event {
+
+}

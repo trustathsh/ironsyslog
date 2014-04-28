@@ -37,52 +37,66 @@
  * #L%
  */
 
-package de.hshannover.f4.trust.ironsyslog;
+package de.hshannover.f4.trust.ironsyslog.handler;
+
+import java.net.SocketAddress;
+
+import com.nesscomputing.syslog4j.server.SyslogServerEventIF;
+import com.nesscomputing.syslog4j.server.SyslogServerIF;
+import com.nesscomputing.syslog4j.server.SyslogServerSessionEventHandlerIF;
 
 import de.hshannover.f4.trust.ironsyslog.ep.drools.IronSyslogDrools;
-import de.hshannover.f4.trust.ironsyslog.handler.IronSyslogDroolsHandler;
-import de.hshannover.f4.trust.ironsyslog.ifmap.IronSyslogPublisher;
 
 /**
- * This class starts the application. It creates the threads for the syslog
- * server, registers a handler for drools, the event processing engine and a
- * publisher for ifmap.
+ * Implements a handler for the Syslog4j server to forward the events to the
+ * drools engine.
  * 
- * @author Leonard renners
+ * @author Leonard Renners
  * 
  */
-public final class IronSyslog {
+public class IronSyslogDroolsHandler implements
+        SyslogServerSessionEventHandlerIF {
+
+    private final IronSyslogDrools mEngine;
 
     /**
-     * Death constructor for code convention -> final class because utility
-     * class
-     */
-    private IronSyslog() {
-    }
-
-    /**
-     * The Main method initialize the Configuration and the all components.
+     * Constructor.
      * 
+     * @param engine
+     *            The engine to forward te events to
      */
-    public static void main(String[] args) {
-        System.setProperty("log4j.configuration", "log4j.properties");
-        // Logger.getRootLogger().setLevel(Level.INFO);
-
-        IronSyslogPublisher.init();
-
-        IronSyslogServer sys = new IronSyslogServer();
-        sys.setupServer("192.168.1.53", 9999, "udp");
-
-        IronSyslogDrools droolsEngine = new IronSyslogDrools(
-                "/rules/drools/eventrule.drl");
-        sys.addHandler(new IronSyslogDroolsHandler(droolsEngine));
-        // sys.addHandler(new IronSyslogLoggerHandler());
-
-        // setupSSLServer();
-        // setupSSLClient();
-        // while (true) {
-        // SyslogUtility.sleep(1000L);
-        // sys.send("192.168.1.53", 514, "udp", SyslogLevel.INFO, "Testerin0");
-        // }
+    public IronSyslogDroolsHandler(IronSyslogDrools engine) {
+        this.mEngine = engine;
     }
+
+    @Override
+    public void initialize(SyslogServerIF syslogServer) {
+    }
+
+    @Override
+    public Object sessionOpened(SyslogServerIF syslogServer,
+            SocketAddress socketAddress) {
+        return null;
+    }
+
+    @Override
+    public void event(Object session, SyslogServerIF syslogServer,
+            SocketAddress socketAddress, SyslogServerEventIF event) {
+        mEngine.insert(event);
+    }
+
+    @Override
+    public void exception(Object session, SyslogServerIF syslogServer,
+            SocketAddress socketAddress, Exception exception) {
+    }
+
+    @Override
+    public void sessionClosed(Object session, SyslogServerIF syslogServer,
+            SocketAddress socketAddress, boolean timeout) {
+    }
+
+    @Override
+    public void destroy(SyslogServerIF syslogServer) {
+    }
+
 }
