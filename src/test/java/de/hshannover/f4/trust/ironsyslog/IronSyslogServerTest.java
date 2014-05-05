@@ -47,6 +47,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.nesscomputing.syslog4j.Syslog;
+import com.nesscomputing.syslog4j.SyslogLevel;
+
+import de.hshannover.f4.trust.ironsyslog.syslog.IronSyslogServer;
+
 /**
  * Test class for the setup of the syslog server.
  * 
@@ -63,6 +68,8 @@ public class IronSyslogServerTest {
      */
     @Before
     public void setUp() {
+        System.setProperty("log4j.defaultInitOverride", "false");
+        System.setProperty("log4j.configuration", "log4j.properties");
         ironsyslog = new IronSyslogServer();
     }
 
@@ -74,7 +81,7 @@ public class IronSyslogServerTest {
         assertFalse(ironsyslog.isServerRunning());
         assertFalse(ironsyslog.isServerRunning("udp"));
 
-        ironsyslog.setupServer(HOST_IP, 514, "udp");
+        ironsyslog.setupServer(HOST_IP, 9999, "udp");
         assertTrue(ironsyslog.isServerRunning());
         assertTrue(ironsyslog.isServerRunning("udp"));
         assertFalse(ironsyslog.isServerRunning("tcp"));
@@ -101,9 +108,9 @@ public class IronSyslogServerTest {
         assertFalse(ironsyslog.isServerRunning("ssltcp"));
         assertFalse(ironsyslog.isServerRunning());
 
-        // Syslog.getInstance("udp").getConfig().setHost(HOST_IP);
-        // Syslog.getInstance("udp").getConfig().setPort(514);
-        // Syslog.getInstance("udp").log(SyslogLevel.INFO, "test");
+        Syslog.getInstance("udp").getConfig().setHost(HOST_IP);
+        Syslog.getInstance("udp").getConfig().setPort(514);
+        Syslog.getInstance("udp").log(SyslogLevel.INFO, "test");
     }
 
     /**

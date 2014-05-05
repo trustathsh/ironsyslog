@@ -39,9 +39,15 @@
 
 package de.hshannover.f4.trust.ironsyslog;
 
+import java.io.File;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+
+import org.apache.log4j.Logger;
+
 import de.hshannover.f4.trust.ironsyslog.ep.drools.IronSyslogDrools;
-import de.hshannover.f4.trust.ironsyslog.handler.IronSyslogDroolsHandler;
-import de.hshannover.f4.trust.ironsyslog.ifmap.IronSyslogPublisher;
+import de.hshannover.f4.trust.ironsyslog.syslog.IronSyslogServer;
+import de.hshannover.f4.trust.ironsyslog.syslog.handler.DroolsHandler;
 
 /**
  * This class starts the application. It creates the threads for the syslog
@@ -65,17 +71,36 @@ public final class IronSyslog {
      * 
      */
     public static void main(String[] args) {
+        System.setProperty("log4j.defaultInitOverride", "false");
         System.setProperty("log4j.configuration", "log4j.properties");
-        // Logger.getRootLogger().setLevel(Level.INFO);
+        final Logger LOGGER = Logger.getLogger(IronSyslog.class);
+        final String RULEFOLDER = "/rules/drools/";
 
-        IronSyslogPublisher.init();
+        LOGGER.info("Starting IronSyslog Collector ...");
+
+        // IronSyslogPublisher.init();
+        ArrayList<String> ruleFiles = new ArrayList<>();
 
         IronSyslogServer sys = new IronSyslogServer();
         sys.setupServer("192.168.1.53", 9999, "udp");
-
-        IronSyslogDrools droolsEngine = new IronSyslogDrools(
-                "/rules/drools/eventrule.drl");
-        sys.addHandler(new IronSyslogDroolsHandler(droolsEngine));
+        try {
+            File f;
+            f = new File(IronSyslog.class.getResource(RULEFOLDER).toURI());
+            File[] fileArray = f.listFiles();
+            for (int i = 0; i < fileArray.length; i++) {
+                if (fileArray[i].getName().endsWith(".drl")) {
+                    ruleFiles.add(RULEFOLDER + fileArray[i].getName());
+                }
+            }
+        } catch (URISyntaxException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        // ruleFiles.add("/rules/drools/dnsrules.drl");
+        // ruleFiles.add("/rules/drools/syslogeventrule.drl");
+        // ruleFiles.add("/rules/drools/publishrules.drl");
+        IronSyslogDrools droolsEngine = new IronSyslogDrools(ruleFiles);
+        sys.addHandler(new DroolsHandler(droolsEngine));
         // sys.addHandler(new IronSyslogLoggerHandler());
 
         // setupSSLServer();

@@ -37,7 +37,7 @@
  * #L%
  */
 
-package de.hshannover.f4.trust.ironsyslog;
+package de.hshannover.f4.trust.ironsyslog.syslog;
 
 import java.util.ArrayList;
 
@@ -62,8 +62,8 @@ public class IronSyslogServer {
     private static final Logger LOGGER = Logger
             .getLogger(IronSyslogServer.class);
 
-    private final ArrayList<SyslogServerIF> mRunningServers;
-    private final ArrayList<SyslogServerSessionEventHandlerIF> mHandlers;
+    private ArrayList<SyslogServerIF> mRunningServers;
+    private ArrayList<SyslogServerSessionEventHandlerIF> mHandlers;
 
     /**
      * Default constructor. Initially, no server is listening.
@@ -120,6 +120,8 @@ public class IronSyslogServer {
             config.addEventHandler(handler);
         }
         mRunningServers.add(server);
+        LOGGER.info("started: syslog server on " + host + " using " + protocol
+                + " on port " + port);
     }
 
     /**
@@ -181,6 +183,8 @@ public class IronSyslogServer {
             config.addEventHandler(handler);
         }
         mRunningServers.add(server);
+        LOGGER.info("started: syslog server on " + host
+                + " using ssltcp on port " + port);
     }
 
     /**
@@ -242,6 +246,10 @@ public class IronSyslogServer {
             if (server.getProtocol().equals(protocol)) {
                 server.shutdown();
                 remove.add(server);
+                LOGGER.info("shutdown: syslog server on "
+                        + server.getConfig().getHost() + " using "
+                        + server.getProtocol() + " on port "
+                        + server.getConfig().getPort());
             }
         }
         mRunningServers.removeAll(remove);

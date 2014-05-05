@@ -37,47 +37,41 @@
  * #L%
  */
 
-package de.hshannover.f4.trust.ironsyslog.handler;
+package de.hshannover.f4.trust.ironsyslog.syslog.handler;
 
 import java.net.SocketAddress;
 
-import com.nesscomputing.syslog4j.Syslog;
-import com.nesscomputing.syslog4j.impl.AbstractSyslog;
-import com.nesscomputing.syslog4j.impl.net.tcp.TCPNetSyslog;
-import com.nesscomputing.syslog4j.impl.net.tcp.ssl.SSLTCPNetSyslog;
-import com.nesscomputing.syslog4j.impl.net.udp.UDPNetSyslog;
+import org.apache.log4j.Logger;
+
 import com.nesscomputing.syslog4j.server.SyslogServerEventIF;
 import com.nesscomputing.syslog4j.server.SyslogServerIF;
 import com.nesscomputing.syslog4j.server.SyslogServerSessionEventHandlerIF;
 
+import de.hshannover.f4.trust.ironsyslog.ep.drools.IronSyslogDrools;
+import de.hshannover.f4.trust.ironsyslog.ep.events.IronSyslogServerEvent;
+
 /**
- * Implements a handler for the Syslog4j server to forward the events to an
- * existing syslog server.
+ * Implements a handler for the Syslog4j server to forward the events to the
+ * drools engine.
  * 
  * @author Leonard Renners
  * 
  */
-public class IronSyslogForwardHandler implements
+public class DroolsHandler implements
         SyslogServerSessionEventHandlerIF {
 
-    private final String mForwardHost;
-    private final int mForwardPort;
-    private final String mForwardProtocol;
+    private IronSyslogDrools mEngine;
+    private static final Logger LOGGER = Logger
+            .getLogger(DroolsHandler.class);
 
     /**
      * Constructor.
      * 
-     * @param host
-     *            IP of the existing syslog server
-     * @param port
-     *            Port to forward the events to
-     * @param protocol
-     *            Protocol used by the existing server
+     * @param engine
+     *            The engine to forward te events to
      */
-    public IronSyslogForwardHandler(String host, int port, String protocol) {
-        this.mForwardHost = host;
-        this.mForwardPort = port;
-        this.mForwardProtocol = protocol;
+    public DroolsHandler(IronSyslogDrools engine) {
+        this.mEngine = engine;
     }
 
     @Override
@@ -93,35 +87,15 @@ public class IronSyslogForwardHandler implements
     @Override
     public void event(Object session, SyslogServerIF syslogServer,
             SocketAddress socketAddress, SyslogServerEventIF event) {
-        AbstractSyslog syslog = (AbstractSyslog) Syslog
-                .getInstance(mForwardProtocol);
-        switch (mForwardProtocol) {
-        case "tcp":
-            ((TCPNetSyslog) syslog).getConfig().setHost(mForwardHost);
-            ((TCPNetSyslog) syslog).getConfig().setPort(mForwardPort);
-            break;
-        case "udp":
-            ((UDPNetSyslog) syslog).getConfig().setHost(mForwardHost);
-            ((UDPNetSyslog) syslog).getConfig().setPort(mForwardPort);
-            break;
-        case "ssltcp":
-            ((SSLTCPNetSyslog) syslog).getConfig().setHost(mForwardHost);
-            ((SSLTCPNetSyslog) syslog).getConfig().setPort(mForwardPort);
-            break;
-        default:
-            break;
-        }
-        syslog.getWriter().write(event.getRaw());
+        IronSyslogServerEvent insert = new IronSyslogServerEvent(event);
+        LOGGER.debug("Handler triggered, inserting the following event into drools: "
+                + insert.toString());
+        mEngine.insert(new IronSyslogServerEvent(insert));
     }
 
     @Override
     public void exception(Object session, SyslogServerIF syslogServer,
             SocketAddress socketAddress, Exception exception) {
-        try {
-            throw exception;
-        } catch (Exception e) {
-            System.out.println("Forward failed");
-        }
     }
 
     @Override

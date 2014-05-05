@@ -37,80 +37,100 @@
  * #L%
  */
 
-package de.hshannover.f4.trust.ironsyslog.handler;
+package de.hshannover.f4.trust.ironsyslog.syslog.handler;
 
 import java.net.SocketAddress;
-import java.util.Date;
 
-import org.apache.log4j.Logger;
-
+import com.nesscomputing.syslog4j.Syslog;
+import com.nesscomputing.syslog4j.impl.AbstractSyslog;
+import com.nesscomputing.syslog4j.impl.net.tcp.TCPNetSyslog;
+import com.nesscomputing.syslog4j.impl.net.tcp.ssl.SSLTCPNetSyslog;
+import com.nesscomputing.syslog4j.impl.net.udp.UDPNetSyslog;
 import com.nesscomputing.syslog4j.server.SyslogServerEventIF;
 import com.nesscomputing.syslog4j.server.SyslogServerIF;
 import com.nesscomputing.syslog4j.server.SyslogServerSessionEventHandlerIF;
 
 /**
- * Implements a handler for the Syslog4j server to log the events using log4j.
+ * Implements a handler for the Syslog4j server to forward the events to an
+ * existing syslog server.
  * 
  * @author Leonard Renners
  * 
  */
-public class IronSyslogLoggerHandler implements
+public class ForwardHandler implements
         SyslogServerSessionEventHandlerIF {
 
-    private static Logger LOGGER = Logger
-            .getLogger(IronSyslogLoggerHandler.class);
+    private String mForwardHost;
+    private int mForwardPort;
+    private String mForwardProtocol;
 
     /**
      * Constructor.
+     * 
+     * @param host
+     *            IP of the existing syslog server
+     * @param port
+     *            Port to forward the events to
+     * @param protocol
+     *            Protocol used by the existing server
      */
-    public IronSyslogLoggerHandler() {
+    public ForwardHandler(String host, int port, String protocol) {
+        this.mForwardHost = host;
+        this.mForwardPort = port;
+        this.mForwardProtocol = protocol;
     }
 
     @Override
     public void initialize(SyslogServerIF syslogServer) {
-        LOGGER.info(syslogServer.getProtocol() + " server on port "
-                + syslogServer.getActualPort() + " initialized");
     }
 
     @Override
     public Object sessionOpened(SyslogServerIF syslogServer,
             SocketAddress socketAddress) {
-        LOGGER.info(syslogServer.getProtocol() + " server on port "
-                + syslogServer.getActualPort() + " opened");
         return null;
     }
 
     @Override
     public void event(Object session, SyslogServerIF syslogServer,
             SocketAddress socketAddress, SyslogServerEventIF event) {
-        String date = (event.getDate() == null ? new Date() : event.getDate())
-                .toString();
-        String facility = event.getFacility().name();
-        String level = event.getLevel().name();
-        LOGGER.info(syslogServer.getProtocol() + " server on port "
-                + syslogServer.getActualPort() + " recieved an Event: " + "{"
-                + facility + "} " + date + " " + level + " "
-                + event.getMessage());
+        AbstractSyslog syslog = (AbstractSyslog) Syslog
+                .getInstance(mForwardProtocol);
+        switch (mForwardProtocol) {
+        case "tcp":
+            ((TCPNetSyslog) syslog).getConfig().setHost(mForwardHost);
+            ((TCPNetSyslog) syslog).getConfig().setPort(mForwardPort);
+            break;
+        case "udp":
+            ((UDPNetSyslog) syslog).getConfig().setHost(mForwardHost);
+            ((UDPNetSyslog) syslog).getConfig().setPort(mForwardPort);
+            break;
+        case "ssltcp":
+            ((SSLTCPNetSyslog) syslog).getConfig().setHost(mForwardHost);
+            ((SSLTCPNetSyslog) syslog).getConfig().setPort(mForwardPort);
+            break;
+        default:
+            break;
+        }
+        syslog.getWriter().write(event.getRaw());
     }
 
     @Override
     public void exception(Object session, SyslogServerIF syslogServer,
             SocketAddress socketAddress, Exception exception) {
-        LOGGER.error("An Exception on the " + syslogServer.getProtocol()
-                + " server on port " + syslogServer.getActualPort()
-                + " occured!", exception);
+        try {
+            throw exception;
+        } catch (Exception e) {
+            System.out.println("Forward failed");
+        }
     }
 
     @Override
     public void sessionClosed(Object session, SyslogServerIF syslogServer,
             SocketAddress socketAddress, boolean timeout) {
-        LOGGER.info(syslogServer.getProtocol() + " server on port "
-                + syslogServer.getActualPort() + " closed");
     }
 
     @Override
     public void destroy(SyslogServerIF syslogServer) {
-        LOGGER.info(syslogServer.getProtocol() + " server on port "
-                + syslogServer.getActualPort() + " destroyed");
     }
+
 }

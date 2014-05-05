@@ -66,23 +66,24 @@ import org.drools.runtime.rule.WorkingMemoryEntryPoint;
  */
 public class IronSyslogDrools {
 
-    private static String DEFAULT_DRL_FILE = "/rules/drools/eventrule.drl";
+    private static final String DEFAULT_DRL_FILE = "/rules/drools/eventrule.drl";
 
-    private final KnowledgeBuilder mKbuilder = KnowledgeBuilderFactory
+    private KnowledgeBuilder mKbuilder = KnowledgeBuilderFactory
             .newKnowledgeBuilder();
     private Collection<KnowledgePackage> mPkgs;
     private KnowledgeBase mKbase = KnowledgeBaseFactory.newKnowledgeBase();
     private StatefulKnowledgeSession mKsession;
     private List<String> mRuleFiles;
 
-    private static Logger LOGGER = Logger.getLogger(IronSyslogDrools.class);
+    private static final Logger LOGGER = Logger
+            .getLogger(IronSyslogDrools.class);
 
     /**
      * Constructor, using the default rule file.
      */
     public IronSyslogDrools() {
-        mRuleFiles = new ArrayList<>();
-        mRuleFiles.add(DEFAULT_DRL_FILE);
+        this.mRuleFiles = new ArrayList<>();
+        this.mRuleFiles.add(DEFAULT_DRL_FILE);
         initialiseSession();
     }
 
@@ -93,8 +94,8 @@ public class IronSyslogDrools {
      *            the rule file to use
      */
     public IronSyslogDrools(String ruleFile) {
-        mRuleFiles = new ArrayList<>();
-        mRuleFiles.add(ruleFile);
+        this.mRuleFiles = new ArrayList<>();
+        this.mRuleFiles.add(ruleFile);
         initialiseSession();
     }
 
@@ -105,7 +106,7 @@ public class IronSyslogDrools {
      *            the rule files to use
      */
     public IronSyslogDrools(List<String> ruleFiles) {
-        ruleFiles = new ArrayList<>();
+        this.mRuleFiles = new ArrayList<>();
         this.mRuleFiles.addAll(ruleFiles);
         initialiseSession();
     }

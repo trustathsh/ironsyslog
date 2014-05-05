@@ -1,0 +1,22 @@
+import function de.hshannover.f4.trust.ironsyslog.util.DroolsRuleLogger.debug
+import de.hshannover.f4.trust.ironsyslog.ep.events.IpMacEvent
+import de.hshannover.f4.trust.ironsyslog.ep.events.DhcpAckEvent
+
+declare DhcpAckEvent
+@role(event)
+@timestamp(timestamp)
+end
+
+declare IpMacEvent
+@role(event)
+@timestamp(timestamp)
+end
+
+rule "DhcpAckEvent"
+when
+	$dae:DhcpAckEvent()
+then
+	debug("Rule \"" + drools.getRule().getName() + "\" fired.");
+	IpMacEvent result = new IpMacEvent($dae.getIpAddress(), $dae.getMacAddress(), $dae.getDhcpServer());
+	insert( result );
+end

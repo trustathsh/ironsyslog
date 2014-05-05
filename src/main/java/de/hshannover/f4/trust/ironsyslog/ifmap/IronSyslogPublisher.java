@@ -40,7 +40,6 @@
 package de.hshannover.f4.trust.ironsyslog.ifmap;
 
 import org.apache.log4j.Logger;
-import org.w3c.dom.Document;
 
 import de.hshannover.f4.trust.ifmapj.IfmapJ;
 import de.hshannover.f4.trust.ifmapj.IfmapJHelper;
@@ -48,25 +47,23 @@ import de.hshannover.f4.trust.ifmapj.channel.SSRC;
 import de.hshannover.f4.trust.ifmapj.exception.IfmapErrorResult;
 import de.hshannover.f4.trust.ifmapj.exception.IfmapException;
 import de.hshannover.f4.trust.ifmapj.exception.InitializationException;
-import de.hshannover.f4.trust.ifmapj.identifier.AccessRequest;
-import de.hshannover.f4.trust.ifmapj.identifier.Device;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifiers;
-import de.hshannover.f4.trust.ifmapj.messages.PublishRequest;
-import de.hshannover.f4.trust.ifmapj.messages.PublishUpdate;
+import de.hshannover.f4.trust.ifmapj.identifier.IpAddress;
+import de.hshannover.f4.trust.ifmapj.identifier.MacAddress;
 import de.hshannover.f4.trust.ifmapj.messages.Requests;
 import de.hshannover.f4.trust.ifmapj.metadata.StandardIfmapMetadataFactory;
+import de.hshannover.f4.trust.ironsyslog.ep.events.IpMacEvent;
+import de.hshannover.f4.trust.ironsyslog.ep.events.LoginFailedEvent;
 
 /**
  * 
- * @author root
+ * @author Leonard Renners
  * 
  */
 public final class IronSyslogPublisher {
 
     private static StandardIfmapMetadataFactory mf = IfmapJ
             .createStandardMetadataFactory();
-
-    private static String LOGGING_CONFIG_FILE = "log4j.properties";
 
     private static final Logger LOGGER = Logger
             .getLogger(IronSyslogPublisher.class);
@@ -111,37 +108,46 @@ public final class IronSyslogPublisher {
     }
 
     /**
-     * Only for testing purposes so far.
+     * Publishes an IpMacEvent as an meta-ip-mac metadata in the ifmap server.
      * 
-     * @param o
-     *            Object
+     * @param event
+     *            the event to publish
      */
-    public static void publishBinky(Object o) {
+    public static void publishIpMac(IpMacEvent event) {
         try {
-            LOGGER.info("Publishing some binky - got Object: " + o);
-            PublishRequest arDevUpdate = Requests.createPublishReq();
-            // create a publish update element
-            PublishUpdate update = Requests.createPublishUpdate();
-            // create and set access-request identifier
-            AccessRequest ar = Identifiers.createAr("ar012345678",
-                    "de.hshannover.f4.trust");
-            update.setIdentifier1(ar);
-            // create and set device identifier
-            Device dev = Identifiers.createDev("device01");
-            update.setIdentifier2(dev);
-            // create and set access-request-device metadata
-            Document arDev = mf.createArDev();
-            update.addMetadata(arDev);
-            // add all to the publish request
-            arDevUpdate.addPublishElement(update);
-            mSsrc.publish(arDevUpdate);
-            LOGGER.info("Publish successful");
+            LOGGER.debug("Publishing meta-ip-mac for: " + event);
+
+            StandardIfmapMetadataFactory mf = IfmapJ
+                    .createStandardMetadataFactory();
+            IpAddress ip = Identifiers.createIp4(event.getIpAddress());
+            MacAddress mac = Identifiers.createMac(event.getMacAddress());
+
+            mSsrc.publish(Requests.createPublishReq(Requests
+                    .createPublishUpdate(ip, mac, mf.createIpMac())));
+
+            LOGGER.debug("Publish successful");
         } catch (IfmapException e) {
             LOGGER.error(e);
         } catch (IfmapErrorResult e) {
             LOGGER.error(e);
         }
-
     }
 
+    /**
+     * Publishes an LoginFailed as an login-failed metadata in the ifmap server.
+     * 
+     * @param event
+     *            the event to publish
+     */
+    public static void publishLoginFailed(LoginFailedEvent event) {
+        // try {
+        LOGGER.debug("Publishing login-failed for: " + event);
+        // TODO: Implement
+        LOGGER.debug("Publish successful");
+        // } catch (IfmapException e) {
+        // LOGGER.error(e);
+        // } catch (IfmapErrorResult e) {
+        // LOGGER.error(e);
+        // }
+    }
 }

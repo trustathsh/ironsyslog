@@ -1,0 +1,49 @@
+import function de.hshannover.f4.trust.ironsyslog.util.DroolsRuleLogger.debug
+import de.hshannover.f4.trust.ironsyslog.ep.events.DhcpAckEvent
+import de.hshannover.f4.trust.ironsyslog.ep.events.IronSyslogServerEvent
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
+declare DhcpAckEvent
+@role(event)
+@timestamp(timestamp)
+end
+
+declare IronSyslogServerEvent
+@role(event)
+@timestamp(timestamp)
+end
+
+rule "dnsmasq-dhcp DHCPACK"
+when
+	$ise:IronSyslogServerEvent(message.contains("dnsmasq-dhcp"), message.contains("DHCPACK"))
+then
+	debug("Rule \"" + drools.getRule().getName() + "\" fired.");
+	String message = $ise.getMessage();
+	Pattern p = Pattern.compile("dnsmasq-dhcp\\[\\d+\\]: DHCPACK\\((.*)\\) (\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}) (..:..:..:..:..:..) (.*)");
+	Matcher m = p.matcher(message);
+	if (m.find()) {
+		String networkInterface = m.group(1);
+		String ipAddress = m.group(2);
+		String macAddress = m.group(3);
+		String deviceName = m.group(4);
+		insert ( new DhcpAckEvent(ipAddress, macAddress, $ise.getHost(), networkInterface) );
+	}
+end
+
+rule "dhcpd DHCPACK"
+when
+	$ise:IronSyslogServerEvent(message.contains("dhcpd"), message.contains("DHCPACK"))
+then
+	debug("Rule \"" + drools.getRule().getName() + "\" fired.");
+	String message = $ise.getMessage();
+	Pattern p = Pattern.compile("dhcpd: DHCPACK on (\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}) to (..:..:..:..:..:..) via (.*)");
+	Matcher m = p.matcher(message);
+	if (m.find()) {
+		String networkInterface = m.group(3);
+		String ipAddress = m.group(1);
+		String macAddress = m.group(2);
+		insert ( new DhcpAckEvent(ipAddress, macAddress, $ise.getHost(), networkInterface) );
+	}
+end
+

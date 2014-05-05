@@ -37,14 +37,46 @@
  * #L%
  */
 
-package de.hshannover.f4.trust.ironsyslog.events;
+package de.hshannover.f4.trust.ironsyslog.ep.events;
+
+import java.util.Date;
+import java.util.UUID;
 
 /**
- * Super Event class. Not really in use yet.
+ * Super Event class defining common attributes like an unique ID and a
+ * timestamp defining date of the creation of the event.
  * 
  * @author Leonard Renners
  * 
  */
-public class Event {
+public abstract class Event {
+
+    private UUID mId = UUID.randomUUID();
+    private Date mTimestamp;
+
+    /**
+     * Default Constructor. Initialises the Event with the current Date (new
+     * {@link Date}.
+     */
+    public Event() {
+        super();
+        mTimestamp = new Date();
+    }
+
+    public UUID getId() {
+        return mId;
+    }
+
+    public void setId(UUID id) {
+        this.mId = id;
+    }
+
+    public Date getTimestamp() {
+        return mTimestamp;
+    }
+
+    public void setTimestamp(Date timestamp) {
+        this.mTimestamp = timestamp;
+    }
 
 }

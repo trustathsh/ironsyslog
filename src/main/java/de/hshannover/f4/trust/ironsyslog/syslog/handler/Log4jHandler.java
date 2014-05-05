@@ -37,66 +37,80 @@
  * #L%
  */
 
-package de.hshannover.f4.trust.ironsyslog.handler;
+package de.hshannover.f4.trust.ironsyslog.syslog.handler;
 
 import java.net.SocketAddress;
+import java.util.Date;
+
+import org.apache.log4j.Logger;
 
 import com.nesscomputing.syslog4j.server.SyslogServerEventIF;
 import com.nesscomputing.syslog4j.server.SyslogServerIF;
 import com.nesscomputing.syslog4j.server.SyslogServerSessionEventHandlerIF;
 
-import de.hshannover.f4.trust.ironsyslog.ep.drools.IronSyslogDrools;
-
 /**
- * Implements a handler for the Syslog4j server to forward the events to the
- * drools engine.
+ * Implements a handler for the Syslog4j server to log the events using log4j.
  * 
  * @author Leonard Renners
  * 
  */
-public class IronSyslogDroolsHandler implements
+public class Log4jHandler implements
         SyslogServerSessionEventHandlerIF {
 
-    private final IronSyslogDrools mEngine;
+    private static Logger LOGGER = Logger
+            .getLogger(Log4jHandler.class);
 
     /**
      * Constructor.
-     * 
-     * @param engine
-     *            The engine to forward te events to
      */
-    public IronSyslogDroolsHandler(IronSyslogDrools engine) {
-        this.mEngine = engine;
+    public Log4jHandler() {
     }
 
     @Override
     public void initialize(SyslogServerIF syslogServer) {
+        LOGGER.info(syslogServer.getProtocol() + " server on port "
+                + syslogServer.getActualPort() + " initialized");
     }
 
     @Override
     public Object sessionOpened(SyslogServerIF syslogServer,
             SocketAddress socketAddress) {
+        LOGGER.info(syslogServer.getProtocol() + " server on port "
+                + syslogServer.getActualPort() + " opened");
         return null;
     }
 
     @Override
     public void event(Object session, SyslogServerIF syslogServer,
             SocketAddress socketAddress, SyslogServerEventIF event) {
-        mEngine.insert(event);
+        String date = (event.getDate() == null ? new Date() : event.getDate())
+                .toString();
+        String facility = event.getFacility().name();
+        String level = event.getLevel().name();
+        LOGGER.info(syslogServer.getProtocol() + " server on port "
+                + syslogServer.getActualPort() + " recieved an Event: " + "{"
+                + facility + "} " + date + " " + level + " "
+                + event.getMessage());
     }
 
     @Override
     public void exception(Object session, SyslogServerIF syslogServer,
             SocketAddress socketAddress, Exception exception) {
+        LOGGER.error("An Exception on the " + syslogServer.getProtocol()
+                + " server on port " + syslogServer.getActualPort()
+                + " occured!", exception);
     }
 
     @Override
     public void sessionClosed(Object session, SyslogServerIF syslogServer,
             SocketAddress socketAddress, boolean timeout) {
+        LOGGER.info(syslogServer.getProtocol() + " server on port "
+                + syslogServer.getActualPort() + " closed");
     }
 
     @Override
     public void destroy(SyslogServerIF syslogServer) {
+        LOGGER.info(syslogServer.getProtocol() + " server on port "
+                + syslogServer.getActualPort() + " destroyed");
     }
-
 }
