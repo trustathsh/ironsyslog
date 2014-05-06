@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import org.apache.log4j.Logger;
 
 import de.hshannover.f4.trust.ironsyslog.ep.drools.IronSyslogDrools;
+import de.hshannover.f4.trust.ironsyslog.ifmap.IronSyslogPublisher;
 import de.hshannover.f4.trust.ironsyslog.syslog.IronSyslogServer;
 import de.hshannover.f4.trust.ironsyslog.syslog.handler.DroolsHandler;
 
@@ -58,6 +59,8 @@ import de.hshannover.f4.trust.ironsyslog.syslog.handler.DroolsHandler;
  * 
  */
 public final class IronSyslog {
+
+    private static final String RULEFOLDER = "/rules/drools/";
 
     /**
      * Death constructor for code convention -> final class because utility
@@ -74,15 +77,12 @@ public final class IronSyslog {
         System.setProperty("log4j.defaultInitOverride", "false");
         System.setProperty("log4j.configuration", "log4j.properties");
         final Logger LOGGER = Logger.getLogger(IronSyslog.class);
-        final String RULEFOLDER = "/rules/drools/";
 
         LOGGER.info("Starting IronSyslog Collector ...");
 
-        // IronSyslogPublisher.init();
-        ArrayList<String> ruleFiles = new ArrayList<>();
+        IronSyslogPublisher.init();
 
-        IronSyslogServer sys = new IronSyslogServer();
-        sys.setupServer("192.168.1.53", 9999, "udp");
+        ArrayList<String> ruleFiles = new ArrayList<>();
         try {
             File f;
             f = new File(IronSyslog.class.getResource(RULEFOLDER).toURI());
@@ -96,18 +96,11 @@ public final class IronSyslog {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        // ruleFiles.add("/rules/drools/dnsrules.drl");
-        // ruleFiles.add("/rules/drools/syslogeventrule.drl");
-        // ruleFiles.add("/rules/drools/publishrules.drl");
         IronSyslogDrools droolsEngine = new IronSyslogDrools(ruleFiles);
+
+        IronSyslogServer sys = new IronSyslogServer();
+        sys.setupServer("192.168.1.53", 9999, "udp");
         sys.addHandler(new DroolsHandler(droolsEngine));
         // sys.addHandler(new IronSyslogLoggerHandler());
-
-        // setupSSLServer();
-        // setupSSLClient();
-        // while (true) {
-        // SyslogUtility.sleep(1000L);
-        // sys.send("192.168.1.53", 514, "udp", SyslogLevel.INFO, "Testerin0");
-        // }
     }
 }

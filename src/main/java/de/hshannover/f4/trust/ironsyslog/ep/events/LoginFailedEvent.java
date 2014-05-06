@@ -50,6 +50,7 @@ public class LoginFailedEvent extends Event {
     private String mUserId;
     private String mUserIp;
     private String mServiceHost;
+    private String mServiceName;
     private boolean mIsValidUser;
 
     /**
@@ -61,15 +62,18 @@ public class LoginFailedEvent extends Event {
      *            The IP from which the user tried to login
      * @param serviceHost
      *            The dns name of the server on which the user tried to login
+     * @param serviceName
+     *            The service on which the login attempt failed
      * @param isValidUser
      *            Wether the attempt was for an existing user
      */
     public LoginFailedEvent(String userId, String userIp, String serviceHost,
-            boolean isValidUser) {
+            String serviceName, boolean isValidUser) {
         super();
         setUserId(userId);
         setUserIp(userIp);
         setServiceHost(serviceHost);
+        setServiceName(serviceName);
         setValidUser(isValidUser);
     }
 
@@ -112,6 +116,14 @@ public class LoginFailedEvent extends Event {
 
     public void setValidUser(boolean isValidUser) {
         this.mIsValidUser = isValidUser;
+    }
+
+    public String getServiceName() {
+        return mServiceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.mServiceName = serviceName;
     }
 
 }

@@ -57,18 +57,16 @@ import de.hshannover.f4.trust.ironsyslog.ep.events.IronSyslogServerEvent;
  * @author Leonard Renners
  * 
  */
-public class DroolsHandler implements
-        SyslogServerSessionEventHandlerIF {
+public class DroolsHandler implements SyslogServerSessionEventHandlerIF {
 
     private IronSyslogDrools mEngine;
-    private static final Logger LOGGER = Logger
-            .getLogger(DroolsHandler.class);
+    private static final Logger LOGGER = Logger.getLogger(DroolsHandler.class);
 
     /**
      * Constructor.
      * 
      * @param engine
-     *            The engine to forward te events to
+     *            The drools fusion engine to forward the events to
      */
     public DroolsHandler(IronSyslogDrools engine) {
         this.mEngine = engine;
@@ -88,7 +86,7 @@ public class DroolsHandler implements
     public void event(Object session, SyslogServerIF syslogServer,
             SocketAddress socketAddress, SyslogServerEventIF event) {
         IronSyslogServerEvent insert = new IronSyslogServerEvent(event);
-        LOGGER.debug("Handler triggered, inserting the following event into drools: "
+        LOGGER.debug("Inserting the following event into drools: "
                 + insert.toString());
         mEngine.insert(new IronSyslogServerEvent(insert));
     }

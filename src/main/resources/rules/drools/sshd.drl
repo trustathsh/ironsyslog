@@ -20,20 +20,20 @@ when
 then
 	debug("Rule \"" + drools.getRule().getName() + "\" fired.");
 	String message = $ise.getMessage();
-	System.out.println($ise.getMessage());
 	Pattern p;
 	boolean isValidUser;
 	if(message.contains("invalid user")) {
 		isValidUser = false;
-		p = Pattern.compile("sshd\\[\\d+\\]: Failed password for invalid user (.*) from (\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}) port (\\d{1,5}) (.*)");
+		p = Pattern.compile("(sshd)\\[\\d+\\]: Failed password for invalid user (.*) from (\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}) port (\\d{1,5}) (.*)");
 	} else {
 		isValidUser = true;
-		p = Pattern.compile("sshd\\[\\d+\\]: Failed password for (.*) from (\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}) port (\\d{1,5}) (.*)");
+		p = Pattern.compile("(sshd)\\[\\d+\\]: Failed password for (.*) from (\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}) port (\\d{1,5}) (.*)");
 	}
 	Matcher m = p.matcher(message);
 	if (m.find()) {
-		String userId = m.group(1);
-		String userIp = m.group(2);
-		insert ( new LoginFailedEvent(userId, userIp, $ise.getHost(), isValidUser) );
+		String serviceName = m.group(1);
+		String userId = m.group(2);
+		String userIp = m.group(3);
+		insert ( new LoginFailedEvent(userId, userIp, $ise.getHost(), serviceName, isValidUser) );
 	}
 end

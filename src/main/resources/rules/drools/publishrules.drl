@@ -1,5 +1,6 @@
 import function de.hshannover.f4.trust.ironsyslog.util.DroolsRuleLogger.debug
 import function de.hshannover.f4.trust.ironsyslog.ifmap.IronSyslogPublisher.publishIpMac
+import function de.hshannover.f4.trust.ironsyslog.ifmap.IronSyslogPublisher.publishLoginFailed
 import de.hshannover.f4.trust.ironsyslog.ep.events.IpMacEvent
 import de.hshannover.f4.trust.ironsyslog.ep.events.LoginFailedEvent
 

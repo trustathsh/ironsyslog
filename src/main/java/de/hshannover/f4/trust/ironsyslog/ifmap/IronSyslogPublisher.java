@@ -39,7 +39,18 @@
 
 package de.hshannover.f4.trust.ironsyslog.ifmap;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.UUID;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.apache.log4j.Logger;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import de.hshannover.f4.trust.ifmapj.IfmapJ;
 import de.hshannover.f4.trust.ifmapj.IfmapJHelper;
@@ -48,6 +59,8 @@ import de.hshannover.f4.trust.ifmapj.exception.IfmapErrorResult;
 import de.hshannover.f4.trust.ifmapj.exception.IfmapException;
 import de.hshannover.f4.trust.ifmapj.exception.InitializationException;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifiers;
+import de.hshannover.f4.trust.ifmapj.identifier.Identity;
+import de.hshannover.f4.trust.ifmapj.identifier.IdentityType;
 import de.hshannover.f4.trust.ifmapj.identifier.IpAddress;
 import de.hshannover.f4.trust.ifmapj.identifier.MacAddress;
 import de.hshannover.f4.trust.ifmapj.messages.Requests;
@@ -62,18 +75,16 @@ import de.hshannover.f4.trust.ironsyslog.ep.events.LoginFailedEvent;
  */
 public final class IronSyslogPublisher {
 
-    private static StandardIfmapMetadataFactory mf = IfmapJ
+    private static StandardIfmapMetadataFactory mMf = IfmapJ
             .createStandardMetadataFactory();
 
     private static final Logger LOGGER = Logger
             .getLogger(IronSyslogPublisher.class);
 
     private static SSRC mSsrc;
+    private static DocumentBuilder mDocumentBuilder;
 
-    // public static void main(String[] args) {
-    // initialise();
-    // publishBinky(null);
-    // }
+    private static final String XMLNS = "http://simu-project.de/XMLSchema/1";
 
     /**
      * Death constructor for code convention -> final class because utility
@@ -84,7 +95,7 @@ public final class IronSyslogPublisher {
     }
 
     /**
-     * The init methode initiates the Ifmap Session
+     * The init methode initiates the Ifmap Session and the XML Document Builder
      */
     public static void init() {
         LOGGER.info("Initialisiing Session using basic authentication");
@@ -105,6 +116,16 @@ public final class IronSyslogPublisher {
             LOGGER.error(e);
         }
         LOGGER.info("Session successfully created");
+
+        LOGGER.debug("Initialising DocumentBuilder");
+        try {
+            mDocumentBuilder = DocumentBuilderFactory.newInstance()
+                    .newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        LOGGER.debug("DocumentBuilder successfully created");
     }
 
     /**
@@ -117,13 +138,11 @@ public final class IronSyslogPublisher {
         try {
             LOGGER.debug("Publishing meta-ip-mac for: " + event);
 
-            StandardIfmapMetadataFactory mf = IfmapJ
-                    .createStandardMetadataFactory();
             IpAddress ip = Identifiers.createIp4(event.getIpAddress());
             MacAddress mac = Identifiers.createMac(event.getMacAddress());
 
             mSsrc.publish(Requests.createPublishReq(Requests
-                    .createPublishUpdate(ip, mac, mf.createIpMac())));
+                    .createPublishUpdate(ip, mac, mMf.createIpMac())));
 
             LOGGER.debug("Publish successful");
         } catch (IfmapException e) {
@@ -140,14 +159,73 @@ public final class IronSyslogPublisher {
      *            the event to publish
      */
     public static void publishLoginFailed(LoginFailedEvent event) {
-        // try {
-        LOGGER.debug("Publishing login-failed for: " + event);
-        // TODO: Implement
-        LOGGER.debug("Publish successful");
-        // } catch (IfmapException e) {
-        // LOGGER.error(e);
-        // } catch (IfmapErrorResult e) {
-        // LOGGER.error(e);
-        // }
+        try {
+            LOGGER.debug("Publishing login-failed for: " + event);
+            String xmlServiceIdentity = "<service name=\""
+                    + event.getServiceName() + "\" host-name=\""
+                    + event.getServiceHost()
+                    + "\" administrative-domain=\"\" xmlns=\"" + XMLNS + "\"/>";
+            String xmlLoginFailedIdentity = "<login-failed id=\""
+                    + UUID.randomUUID()
+                    + "\" administrative-domain=\"\" xmlns=\"" + XMLNS
+                    + "\" />";
+
+            String xmlLoginFailedUser = "<simu:login-failed-user xmlns:simu=\""
+                    + XMLNS + "\" ifmap-cardinality=\"singleValue\" />";
+            String xmlLoginFailedId = "<simu:login-failed-id xmlns:simu=\""
+                    + XMLNS + "\" ifmap-cardinality=\"singleValue\" />";
+            String xmlLoginFailedIp = "<simu:login-failed-ip xmlns:simu=\""
+                    + XMLNS + "\" ifmap-cardinality=\"singleValue\" />";
+
+            IpAddress userIp = Identifiers.createIp4(event.getUserIp());
+            Identity userName = Identifiers.createIdentity(
+                    IdentityType.userName, event.getUserId());
+            Identity service = Identifiers
+                    .createExtendedIdentity(xmlServiceIdentity);
+            Identity logfinFailed = Identifiers
+                    .createExtendedIdentity(xmlLoginFailedIdentity);
+
+            Document updateLoginFailedUser = createDocument(xmlLoginFailedUser);
+            Document updateLoginFailedId = createDocument(xmlLoginFailedId);
+            Document updateLoginFailedIp = createDocument(xmlLoginFailedIp);
+
+            mSsrc.publish(Requests.createPublishReq(Requests
+                    .createPublishUpdate(service, logfinFailed,
+                            updateLoginFailedId)));
+            mSsrc.publish(Requests.createPublishReq(Requests
+                    .createPublishUpdate(userName, logfinFailed,
+                            updateLoginFailedUser)));
+            mSsrc.publish(Requests.createPublishReq(Requests
+                    .createPublishUpdate(userIp, logfinFailed,
+                            updateLoginFailedIp)));
+            LOGGER.debug("Publish successful");
+        } catch (IfmapException e) {
+            LOGGER.error(e);
+        } catch (IfmapErrorResult e) {
+            LOGGER.error(e);
+        }
+    }
+
+    /**
+     * Creates a W3C Document for a given XML String
+     * 
+     * @param xml
+     *            The xml to parse
+     * @return The corresponding document
+     */
+    private static Document createDocument(String xml) {
+        try {
+            StringReader reader = new StringReader(xml);
+            InputSource input = new InputSource(reader);
+            return mDocumentBuilder.parse(input);
+        } catch (SAXException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
+
     }
 }
