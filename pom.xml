@@ -69,6 +69,7 @@
 				</configuration>
 			</plugin>
 
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
@@ -80,7 +81,7 @@
 							<addClasspath>true</addClasspath>
 						</manifest>
 						<manifestEntries>
-							<Class-Path>.</Class-Path>
+							<Class-Path>. ./</Class-Path>
 						</manifestEntries>
 					</archive>
 					<descriptors>
@@ -147,11 +148,6 @@
 			<artifactId>ness-syslog4j</artifactId>
 			<version>0.9.47-NESS-8</version>
 		</dependency>
-		<dependency>
-			<groupId>net.java.dev.jna</groupId>
-			<artifactId>jna</artifactId>
-			<version>4.1.0</version>
-		</dependency>
 
 		<!-- Drools Dependencies -->
 		<dependency>
@@ -170,7 +166,11 @@
 			<artifactId>drools-pipeline</artifactId>
 			<version>5.6.0.Final</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.yaml</groupId>
+			<artifactId>snakeyaml</artifactId>
+			<version>1.13</version>
+		</dependency>
 		<!-- <dependency> <groupId>com.espertech</groupId> <artifactId>esper</artifactId> 
 			<version>4.11.0</version> </dependency> -->
 

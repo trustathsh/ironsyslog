@@ -43,7 +43,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Logger;
 
 /**
  * This class loads the configuration file from the file system and provides a
@@ -113,17 +114,16 @@ public final class Configuration {
         try {
             props.load(in);
         } catch (FileNotFoundException e) {
-            LOGGER.severe("could not find " + CONFIG_FILE);
+            LOGGER.error("could not find " + CONFIG_FILE);
             throw new RuntimeException(e.getMessage());
         } catch (IOException e) {
-            LOGGER.severe("error while reading " + CONFIG_FILE);
+            LOGGER.error("error while reading " + CONFIG_FILE);
             throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 in.close();
             } catch (IOException e) {
-                LOGGER.warning("error while closing properties inputstream: "
-                        + e);
+                LOGGER.warn("error while closing properties inputstream: " + e);
             }
         }
     }

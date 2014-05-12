@@ -30,20 +30,3 @@ then
 		insert ( new DhcpAckEvent(ipAddress, macAddress, $ise.getHost(), networkInterface) );
 	}
 end
-
-rule "dhcpd DHCPACK"
-when
-	$ise:IronSyslogServerEvent(message.contains("dhcpd"), message.contains("DHCPACK"))
-then
-	debug("Rule \"" + drools.getRule().getName() + "\" fired.");
-	String message = $ise.getMessage();
-	Pattern p = Pattern.compile("dhcpd: DHCPACK on (\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}) to (..:..:..:..:..:..) via (.*)");
-	Matcher m = p.matcher(message);
-	if (m.find()) {
-		String networkInterface = m.group(3);
-		String ipAddress = m.group(1);
-		String macAddress = m.group(2);
-		insert ( new DhcpAckEvent(ipAddress, macAddress, $ise.getHost(), networkInterface) );
-	}
-end
-

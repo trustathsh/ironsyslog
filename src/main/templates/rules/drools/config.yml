@@ -1,0 +1,15 @@
+# All rule files have to end with the ".drl" extension and follow the following folder structure:
+# - rules/drools/
+#   - service/ : Syslog service rule for event transformation
+#   - publish/ : ifmap rule for event publishing
+#   - other/* : all remaining rules
+# Inside the "other" folde an arbitrary folder structure can be used
+
+# Services in the service/ folder to be included
+serviceInclude:
+  - sshd
+  - dnsmasq-dhcp
+
+# Publish rules in the publish/ folder to be excluded
+publishExclude:
+

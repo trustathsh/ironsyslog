@@ -37,54 +37,52 @@
  * #L%
  */
 
-package de.hshannover.f4.trust.ironsyslog;
+package de.hshannover.f4.trust.ironsyslog.ep.drools;
 
-import org.apache.log4j.Logger;
-
-import de.hshannover.f4.trust.ironsyslog.ep.drools.IronSyslogDrools;
-import de.hshannover.f4.trust.ironsyslog.ifmap.IronSyslogPublisher;
-import de.hshannover.f4.trust.ironsyslog.syslog.IronSyslogServer;
-import de.hshannover.f4.trust.ironsyslog.syslog.handler.DroolsHandler;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * This class starts the application. It creates the threads for the syslog
- * server, registers a handler for drools, the event processing engine and a
- * publisher for ifmap.
+ * Meow
  * 
- * @author Leonard renners
+ * @author Leonard Renners
  * 
  */
-public final class IronSyslog {
+public final class RulesConfiguration {
 
-    /**
-     * Death constructor for code convention -> final class because utility
-     * class
-     */
-    private IronSyslog() {
+    private List<String> mServiceInclude = new ArrayList<>();
+    private List<String> mPublishExclude = new ArrayList<>();
+
+    public List<String> getServiceInclude() {
+        return mServiceInclude;
     }
 
     /**
-     * The Main method initialize the Configuration and the all components.
      * 
+     * @param serviceinclude
      */
-    public static void main(String[] args) {
-        System.setProperty("log4j.defaultInitOverride", "false");
-        System.setProperty("log4j.configuration", "log4j.properties");
+    public void setServiceInclude(List<String> serviceinclude) {
+        if (serviceinclude != null) {
+            this.mServiceInclude = serviceinclude;
+        }
+    }
 
-        // FIXME: Jar, Classpath, readme/notice, etc!
+    /**
+     * 
+     * @return wuff
+     */
+    public List<String> getPublishExclude() {
+        return mPublishExclude;
+    }
 
-        final Logger LOGGER = Logger.getLogger(IronSyslog.class);
-
-        LOGGER.info("Starting IronSyslog Collector ...");
-
-        IronSyslogPublisher.init();
-
-        IronSyslogDrools droolsEngine = new IronSyslogDrools();
-
-        IronSyslogServer sys = new IronSyslogServer();
-        sys.setupServer("192.168.1.53", 9999, "udp");
-        sys.addHandler(new DroolsHandler(droolsEngine));
-        // sys.addHandler(new IronSyslogLoggerHandler());
+    /**
+     * 
+     * @param publishexclude
+     */
+    public void setPublishExclude(List<String> publishexclude) {
+        if (publishexclude != null) {
+            this.mPublishExclude = publishexclude;
+        }
     }
 
 }

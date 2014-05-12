@@ -39,6 +39,9 @@
 
 package de.hshannover.f4.trust.ironsyslog.ep.drools;
 
+import java.io.File;
+import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -57,6 +60,9 @@ import org.drools.runtime.ObjectFilter;
 import org.drools.runtime.StatefulKnowledgeSession;
 import org.drools.runtime.rule.FactHandle;
 import org.drools.runtime.rule.WorkingMemoryEntryPoint;
+import org.yaml.snakeyaml.Yaml;
+
+import de.hshannover.f4.trust.ironsyslog.IronSyslog;
 
 /**
  * Main class of the drools event processing eninge.
@@ -66,7 +72,7 @@ import org.drools.runtime.rule.WorkingMemoryEntryPoint;
  */
 public class IronSyslogDrools {
 
-    private static final String DEFAULT_DRL_FILE = "/rules/drools/eventrule.drl";
+    private static final String RULE_FOLDER = "/rules/drools/";
 
     private KnowledgeBuilder mKbuilder = KnowledgeBuilderFactory
             .newKnowledgeBuilder();
@@ -83,31 +89,7 @@ public class IronSyslogDrools {
      */
     public IronSyslogDrools() {
         this.mRuleFiles = new ArrayList<>();
-        this.mRuleFiles.add(DEFAULT_DRL_FILE);
-        initialiseSession();
-    }
-
-    /**
-     * Constructor, using a given rule file.
-     * 
-     * @param ruleFile
-     *            the rule file to use
-     */
-    public IronSyslogDrools(String ruleFile) {
-        this.mRuleFiles = new ArrayList<>();
-        this.mRuleFiles.add(ruleFile);
-        initialiseSession();
-    }
-
-    /**
-     * Constructor, using a list of given rule files.
-     * 
-     * @param ruleFiles
-     *            the rule files to use
-     */
-    public IronSyslogDrools(List<String> ruleFiles) {
-        this.mRuleFiles = new ArrayList<>();
-        this.mRuleFiles.addAll(ruleFiles);
+        prepareRuleFiles();
         initialiseSession();
     }
 
@@ -150,7 +132,7 @@ public class IronSyslogDrools {
                         IronSyslogDrools.class), ResourceType.DRL);
             }
             if (mKbuilder.hasErrors()) {
-                System.out.println(mKbuilder.getErrors().toString());
+                LOGGER.error(mKbuilder.getErrors().toString());
                 throw new RuntimeException("Unable to compile drl\".");
             }
             mPkgs = mKbuilder.getKnowledgePackages();
@@ -242,4 +224,88 @@ public class IronSyslogDrools {
         return mKsession.getFactHandles();
     }
 
+    /**
+     * Parses the config.yml file and prepares the list rule files which are to
+     * be used
+     * 
+     */
+    private void prepareRuleFiles() {
+
+        if (IronSyslog.class.getResource(RULE_FOLDER) == null
+                || IronSyslog.class.getResource(RULE_FOLDER + "service/") == null
+                || IronSyslog.class.getResource(RULE_FOLDER + "publish/") == null
+                || IronSyslog.class.getResource(RULE_FOLDER + "other/") == null) {
+            LOGGER.error("Error while preparing rule files. Broken file system folder structure. \n"
+                    + "Make sure that: rules/drools/ and its subfolders service/, publish/ and other/ exist");
+            System.exit(1);
+        }
+
+        // Prepare Configuration
+        Yaml yaml = new Yaml();
+        InputStream input = IronSyslog.class.getResourceAsStream(RULE_FOLDER
+                + "config.yml");
+        RulesConfiguration config = yaml
+                .loadAs(input, RulesConfiguration.class);
+
+        try {
+            // Add only the service rules (in the service folder) specified in
+            // the configuration
+            for (String service : config.getServiceInclude()) {
+                String fileName = RULE_FOLDER + "service/" + service + ".drl";
+                if (IronSyslog.class.getResource(fileName) != null) {
+                    LOGGER.debug("Adding rule file: " + fileName);
+                    mRuleFiles.add(RULE_FOLDER + "service/" + service + ".drl");
+                } else {
+                    LOGGER.warn("Failed to add rule file: " + fileName);
+                }
+            }
+
+            // Add all publish rules (in the "publish" folder) excluding the one
+            // specified on the
+            // configuration
+            File publishFolder = new File(IronSyslog.class.getResource(
+                    RULE_FOLDER + "publish/").toURI());
+            File[] publishFiles = publishFolder.listFiles();
+            for (int i = 0; i < publishFiles.length; i++) {
+                String fileName = publishFiles[i].getName();
+                if (fileName.endsWith(".drl")
+                        && !config.getPublishExclude().contains(
+                                fileName.substring(0, fileName.length() - 4))) {
+                    LOGGER.debug("Adding rule file: " + RULE_FOLDER
+                            + "publish/" + fileName);
+                    mRuleFiles.add(RULE_FOLDER + "publish/" + fileName);
+                }
+            }
+
+            // Add all other rules ("other" folder, including subfolders)
+            addAllRuleFilesInFolder(RULE_FOLDER + "other/");
+        } catch (URISyntaxException e) {
+            LOGGER.debug("Error while searching for rule files. " + e);
+        }
+    }
+
+    /**
+     * Adds all rule files (.drl) in the given folder and its subfolders to the
+     * {@code mRuleFiles} list
+     * 
+     * @param path
+     *            The path of the folder (starting from the resources path)
+     * @throws URISyntaxException
+     *             If the syntax is wrong
+     */
+    private void addAllRuleFilesInFolder(String path) throws URISyntaxException {
+        File folder = new File(IronSyslog.class.getResource(path).toURI());
+        File[] files = folder.listFiles();
+        for (File f : files) {
+            if (f.isDirectory()) {
+                addAllRuleFilesInFolder(path + f.getName());
+            } else {
+                String fileName = f.getName();
+                if (fileName.endsWith(".drl")) {
+                    LOGGER.debug("Adding rule file: " + path + fileName);
+                    mRuleFiles.add(path + fileName);
+                }
+            }
+        }
+    }
 }

@@ -6,19 +6,24 @@
 	<formats>
 		<format>zip</format>
 	</formats>
-
 	<fileSets>
 		<fileSet>
 			<directory>${basedir}</directory>
 			<includes>
-				<include>src/</include>
-				<include>pom.xml</include>
-				<include>README.txt</include>
-				<include>LICENSE.txt</include>
+				<include>LICENSE</include>
 				<include>NOTICE.txt</include>
-				<include>CHANGELOG.txt</include>
+				<include>README.md</include>
+				<include>pom.xml</include>
 			</includes>
 			<outputDirectory></outputDirectory>
+		</fileSet>
+		<fileSet>
+			<directory>${basedir}/src/main/templates</directory>
+			<includes>
+				<include>ironsyslog.properties</include>
+				<include>rules</include>
+			</includes>
+			<outputDirectory>src/main/resources/</outputDirectory>
 		</fileSet>
 	</fileSets>
 </assembly>

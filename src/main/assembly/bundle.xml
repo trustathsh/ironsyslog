@@ -9,9 +9,15 @@
 
 	<files>
 		<file>
-			<source>${project.build.directory}/${artifactId}-${version}-bin.jar</source>
+			<source>${basedir}/src/main/templates/start.sh</source>
 			<outputDirectory></outputDirectory>
-			<destName>${artifactId}.jar</destName>
+			<fileMode>755</fileMode>
+			<filtered>true</filtered>
+		</file>
+		<file>
+			<source>${project.build.directory}/ironsyslog-${version}-bin.jar</source>
+			<outputDirectory></outputDirectory>
+			<destName>ironsyslog.jar</destName>
 		</file>
 
 	</files>
@@ -20,22 +26,31 @@
 		<fileSet>
 			<directory>${basedir}/src/main/templates</directory>
 			<outputDirectory></outputDirectory>
+			<excludes>
+				<exclude>start.sh</exclude>
+			</excludes>
 		</fileSet>
 		<fileSet>
 			<directory>${project.build.directory}</directory>
 			<outputDirectory></outputDirectory>
 			<includes>
-				<include>${artifactId}-bin.jar</include>
+				<include>ironsyslog-bin.jar</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>${project.build.directory}</directory>
+			<outputDirectory></outputDirectory>
+			<includes>
+				<include>ironsyslog-bin.jar</include>
 			</includes>
 		</fileSet>
 		<fileSet>
 			<directory>${basedir}</directory>
 			<outputDirectory></outputDirectory>
 			<includes>
-				<include>README.txt</include>
-				<include>LICENSE.txt</include>
+				<include>README.md</include>
+				<include>LICENSE</include>
 				<include>NOTICE.txt</include>
-				<include>CHANGELOG.txt</include>
 			</includes>
 		</fileSet>
 	</fileSets>

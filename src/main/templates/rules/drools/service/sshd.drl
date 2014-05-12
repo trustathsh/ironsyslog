@@ -1,6 +1,7 @@
 import function de.hshannover.f4.trust.ironsyslog.util.DroolsRuleLogger.debug
 import de.hshannover.f4.trust.ironsyslog.ep.events.LoginFailedEvent
 import de.hshannover.f4.trust.ironsyslog.ep.events.IronSyslogServerEvent
+import com.nesscomputing.syslog4j.SyslogFacility
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
@@ -16,7 +17,7 @@ end
 
 rule "sshd login failed"
 when
-	$ise:IronSyslogServerEvent(message.contains("sshd"), message.contains("Failed password"))
+	$ise:IronSyslogServerEvent(facility.equals(SyslogFacility.auth), message.contains("sshd"), message.contains("Failed password"))
 then
 	debug("Rule \"" + drools.getRule().getName() + "\" fired.");
 	String message = $ise.getMessage();

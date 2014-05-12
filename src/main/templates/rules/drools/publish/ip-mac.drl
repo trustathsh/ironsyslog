@@ -1,0 +1,17 @@
+import function de.hshannover.f4.trust.ironsyslog.util.DroolsRuleLogger.debug
+import function de.hshannover.f4.trust.ironsyslog.ifmap.IronSyslogPublisher.publishIfMap
+import de.hshannover.f4.trust.ironsyslog.ep.events.IpMacEvent
+import de.hshannover.f4.trust.ironsyslog.ep.events.LoginFailedEvent
+
+declare IpMacEvent
+@role(event)
+@timestamp(timestamp)
+end
+
+rule "Publish IpMacEvent"
+when
+	$e:IpMacEvent()
+then
+	debug("Rule \"" + drools.getRule().getName() + "\" fired.");
+	publishIfMap($e);
+end

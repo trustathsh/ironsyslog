@@ -1,0 +1,25 @@
+import function de.hshannover.f4.trust.ironsyslog.util.DroolsRuleLogger.debug
+import de.hshannover.f4.trust.ironsyslog.ep.events.LoginFailedEvent
+import de.hshannover.f4.trust.ironsyslog.ep.events.AggregatedLoginFailedEvent
+
+declare LoginFailedEvent
+@role(event)
+@timestamp(timestamp)
+end
+
+declare AggregatedLoginFailedEvent
+@role(event)
+@timestamp(timestamp)
+end
+
+rule "Count login failed over 24h"
+when 
+	$init : LoginFailedEvent( $userId : userId, $userIp : userIp, $serviceName : serviceName, $serviceHost : serviceHost, $validUser : validUser )
+	  Number( $count : intValue ) from accumulate(
+        $lfe : LoginFailedEvent( userId == $userId, userIp == $userIp, serviceName == $serviceName, serviceHost == $serviceHost, validUser == $validUser ) 
+        over window:time( 24h ),
+        count( $lfe ) )
+then
+	debug("Rule \"" + drools.getRule().getName() + "\" fired.");
+	insert ( new AggregatedLoginFailedEvent($userId, $userIp, $serviceHost, $serviceName, $validUser, $count) );
+end
