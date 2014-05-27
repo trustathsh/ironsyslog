@@ -45,6 +45,7 @@ import de.hshannover.f4.trust.ironsyslog.ep.drools.IronSyslogDrools;
 import de.hshannover.f4.trust.ironsyslog.ifmap.IronSyslogPublisher;
 import de.hshannover.f4.trust.ironsyslog.syslog.IronSyslogServer;
 import de.hshannover.f4.trust.ironsyslog.syslog.handler.DroolsHandler;
+import de.hshannover.f4.trust.ironsyslog.util.Configuration;
 
 /**
  * This class starts the application. It creates the threads for the syslog
@@ -82,7 +83,7 @@ public final class IronSyslog {
         IronSyslogDrools droolsEngine = new IronSyslogDrools();
 
         IronSyslogServer sys = new IronSyslogServer();
-        sys.setupServer("192.168.1.53", 9999, "udp");
+        sys.setupServer(Configuration.syslogIp(), Configuration.syslogPort(), "udp");
         sys.addHandler(new DroolsHandler(droolsEngine));
         // sys.addHandler(new IronSyslogLoggerHandler());
     }

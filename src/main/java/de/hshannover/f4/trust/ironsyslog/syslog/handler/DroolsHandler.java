@@ -43,12 +43,14 @@ import java.net.SocketAddress;
 
 import org.apache.log4j.Logger;
 
+import com.nesscomputing.syslog4j.SyslogLevel;
 import com.nesscomputing.syslog4j.server.SyslogServerEventIF;
 import com.nesscomputing.syslog4j.server.SyslogServerIF;
 import com.nesscomputing.syslog4j.server.SyslogServerSessionEventHandlerIF;
 
 import de.hshannover.f4.trust.ironsyslog.ep.drools.IronSyslogDrools;
 import de.hshannover.f4.trust.ironsyslog.ep.events.IronSyslogServerEvent;
+import de.hshannover.f4.trust.ironsyslog.util.Configuration;
 
 /**
  * Implements a handler for the Syslog4j server to forward the events to the
@@ -85,10 +87,12 @@ public class DroolsHandler implements SyslogServerSessionEventHandlerIF {
     @Override
     public void event(Object session, SyslogServerIF syslogServer,
             SocketAddress socketAddress, SyslogServerEventIF event) {
-        IronSyslogServerEvent insert = new IronSyslogServerEvent(event);
-        LOGGER.debug("Inserting the following event into drools: "
-                + insert.toString());
-        mEngine.insert(new IronSyslogServerEvent(insert));
+    	if(event.getLevel().getValue() <= Configuration.syslogSeverity()) {
+	        IronSyslogServerEvent insert = new IronSyslogServerEvent(event);
+	        LOGGER.debug("Inserting the following event into drools: "
+	                + insert.toString());
+	        mEngine.insert(new IronSyslogServerEvent(insert));
+    	}
     }
 
     @Override

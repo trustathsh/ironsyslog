@@ -37,7 +37,7 @@
  * #L%
  */
 
-package de.hshannover.f4.trust.ironsyslog.ifmap;
+package de.hshannover.f4.trust.ironsyslog.util;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -45,6 +45,8 @@ import java.io.InputStream;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+
+import com.nesscomputing.syslog4j.SyslogLevel;
 
 /**
  * This class loads the configuration file from the file system and provides a
@@ -77,6 +79,10 @@ public final class Configuration {
 
     private static final String KEYSTORE_PATH = "keystore.path";
     private static final String KEYSTORE_PASSWORD = "keystore.password";
+    
+    private static final String SYSLOG_SEVERITY = "ironsyslog.syslog.severity";
+    private static final String SYSLOG_PORT = "ironsyslog.syslog.port";
+    private static final String SYSLOG_IP = "ironsyslog.syslog.ip";
 
     private static final String IFMAP_KEEPALIVE = "ironsyslog.ifmap.interval";
 
@@ -211,7 +217,33 @@ public final class Configuration {
      * @return property integer
      */
     public static int ifmapKeepalive() {
-        return Integer.parseInt(get(IFMAP_KEEPALIVE));
+    	return Integer.parseInt(get(IFMAP_KEEPALIVE));
     }
-
+    
+    /**
+     * Getter for the syslogSeverity property.
+     * 
+     * @return property integer
+     */
+    public static int syslogSeverity() {
+        return Integer.parseInt(get(SYSLOG_SEVERITY));
+    }
+    
+    /**
+     * Getter for the syslogPort property.
+     * 
+     * @return property integer
+     */
+    public static int syslogPort() {
+    	return Integer.parseInt(get(SYSLOG_PORT));
+    }
+    
+    /**
+     * Getter for the syslogIp property.
+     * 
+     * @return property String
+     */
+    public static String syslogIp() {
+    	return get(SYSLOG_IP);
+    }
 }

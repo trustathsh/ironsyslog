@@ -68,6 +68,7 @@ import de.hshannover.f4.trust.ifmapj.metadata.StandardIfmapMetadataFactory;
 import de.hshannover.f4.trust.ironsyslog.ep.events.AggregatedLoginFailedEvent;
 import de.hshannover.f4.trust.ironsyslog.ep.events.Event;
 import de.hshannover.f4.trust.ironsyslog.ep.events.IpMacEvent;
+import de.hshannover.f4.trust.ironsyslog.util.Configuration;
 
 /**
  * 
