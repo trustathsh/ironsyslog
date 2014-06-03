@@ -164,9 +164,7 @@ public class IronSyslogServerEvent extends Event implements SyslogServerEventIF 
     public String toString() {
         StringBuffer buffer = new StringBuffer();
         buffer.append("[" + this.getClass().getSimpleName() + "] ");
-        for (int i = 0; i < this.getRaw().length; i++) {
-            buffer.append((char) this.getRaw()[i]);
-        }
+        buffer.append(new String(this.getRaw()));
         return buffer.toString();
     }
 }

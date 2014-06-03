@@ -43,7 +43,6 @@ import java.net.SocketAddress;
 
 import org.apache.log4j.Logger;
 
-import com.nesscomputing.syslog4j.SyslogLevel;
 import com.nesscomputing.syslog4j.server.SyslogServerEventIF;
 import com.nesscomputing.syslog4j.server.SyslogServerIF;
 import com.nesscomputing.syslog4j.server.SyslogServerSessionEventHandlerIF;
@@ -61,52 +60,52 @@ import de.hshannover.f4.trust.ironsyslog.util.Configuration;
  */
 public class DroolsHandler implements SyslogServerSessionEventHandlerIF {
 
-    private IronSyslogDrools mEngine;
-    private static final Logger LOGGER = Logger.getLogger(DroolsHandler.class);
+	private IronSyslogDrools mEngine;
+	private static final Logger LOGGER = Logger.getLogger(DroolsHandler.class);
 
-    /**
-     * Constructor.
-     * 
-     * @param engine
-     *            The drools fusion engine to forward the events to
-     */
-    public DroolsHandler(IronSyslogDrools engine) {
-        this.mEngine = engine;
-    }
+	/**
+	 * Constructor.
+	 * 
+	 * @param engine
+	 *            The drools fusion engine to forward the events to
+	 */
+	public DroolsHandler(IronSyslogDrools engine) {
+		this.mEngine = engine;
+	}
 
-    @Override
-    public void initialize(SyslogServerIF syslogServer) {
-    }
+	@Override
+	public void initialize(SyslogServerIF syslogServer) {
+	}
 
-    @Override
-    public Object sessionOpened(SyslogServerIF syslogServer,
-            SocketAddress socketAddress) {
-        return null;
-    }
+	@Override
+	public Object sessionOpened(SyslogServerIF syslogServer,
+			SocketAddress socketAddress) {
+		return null;
+	}
 
-    @Override
-    public void event(Object session, SyslogServerIF syslogServer,
-            SocketAddress socketAddress, SyslogServerEventIF event) {
-    	if(event.getLevel().getValue() <= Configuration.syslogSeverity()) {
-	        IronSyslogServerEvent insert = new IronSyslogServerEvent(event);
-	        LOGGER.debug("Inserting the following event into drools: "
-	                + insert.toString());
-	        mEngine.insert(new IronSyslogServerEvent(insert));
-    	}
-    }
+	@Override
+	public void event(Object session, SyslogServerIF syslogServer,
+			SocketAddress socketAddress, SyslogServerEventIF event) {
+		if (event.getLevel().getValue() <= Configuration.syslogSeverity()) {
+			IronSyslogServerEvent insert = new IronSyslogServerEvent(event);
+			LOGGER.debug("Inserting the following event into drools: "
+					+ insert.toString());
+			mEngine.insert(new IronSyslogServerEvent(insert));
+		}
+	}
 
-    @Override
-    public void exception(Object session, SyslogServerIF syslogServer,
-            SocketAddress socketAddress, Exception exception) {
-    }
+	@Override
+	public void exception(Object session, SyslogServerIF syslogServer,
+			SocketAddress socketAddress, Exception exception) {
+	}
 
-    @Override
-    public void sessionClosed(Object session, SyslogServerIF syslogServer,
-            SocketAddress socketAddress, boolean timeout) {
-    }
+	@Override
+	public void sessionClosed(Object session, SyslogServerIF syslogServer,
+			SocketAddress socketAddress, boolean timeout) {
+	}
 
-    @Override
-    public void destroy(SyslogServerIF syslogServer) {
-    }
+	@Override
+	public void destroy(SyslogServerIF syslogServer) {
+	}
 
 }

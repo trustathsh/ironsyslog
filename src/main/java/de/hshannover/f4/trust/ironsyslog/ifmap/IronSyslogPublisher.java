@@ -68,6 +68,7 @@ import de.hshannover.f4.trust.ifmapj.metadata.StandardIfmapMetadataFactory;
 import de.hshannover.f4.trust.ironsyslog.ep.events.AggregatedLoginFailedEvent;
 import de.hshannover.f4.trust.ironsyslog.ep.events.Event;
 import de.hshannover.f4.trust.ironsyslog.ep.events.IpMacEvent;
+import de.hshannover.f4.trust.ironsyslog.ep.events.MalwareDetectedEvent;
 import de.hshannover.f4.trust.ironsyslog.util.Configuration;
 
 /**
@@ -77,198 +78,224 @@ import de.hshannover.f4.trust.ironsyslog.util.Configuration;
  */
 public final class IronSyslogPublisher {
 
-    private static StandardIfmapMetadataFactory mMf = IfmapJ
-            .createStandardMetadataFactory();
+	private static StandardIfmapMetadataFactory mMf = IfmapJ
+			.createStandardMetadataFactory();
 
-    private static final Logger LOGGER = Logger
-            .getLogger(IronSyslogPublisher.class);
+	private static final Logger LOGGER = Logger
+			.getLogger(IronSyslogPublisher.class);
 
-    private static SSRC mSsrc;
-    private static DocumentBuilder mDocumentBuilder;
+	private static SSRC mSsrc;
+	private static DocumentBuilder mDocumentBuilder;
 
-    private static final String XMLNS = "http://simu-project.de/XMLSchema/1";
+	private static final String XMLNS = "http://simu-project.de/XMLSchema/1";
 
-    /**
-     * Death constructor for code convention -> final class because utility
-     * class
-     */
-    private IronSyslogPublisher() {
+	/**
+	 * Death constructor for code convention -> final class because utility
+	 * class
+	 */
+	private IronSyslogPublisher() {
 
-    }
+	}
 
-    /**
-     * The init methode initiates the Ifmap Session and the XML Document Builder
-     */
-    public static void init() {
-        LOGGER.info("Initialisiing Session using basic authentication");
-        try {
-            mSsrc = IfmapJ.createSSRC(Configuration.ifmapUrlBasic(),
-                    Configuration.ifmapBasicUser(), Configuration
-                            .ifmapBasicPassword(), IfmapJHelper
-                            .getTrustManagers(IronSyslogPublisher.class
-                                    .getResourceAsStream(Configuration
-                                            .keyStorePath()), Configuration
-                                    .keyStorePassword()));
-            mSsrc.newSession();
-        } catch (Exception e) {
-            LOGGER.error("could not connect to ifmap server", e);
-            System.exit(1);
-        }
-        LOGGER.info("Session successfully created");
+	/**
+	 * The init methode initiates the Ifmap Session and the XML Document Builder
+	 */
+	public static void init() {
+		LOGGER.info("Initialisiing Session using basic authentication");
+		try {
+			mSsrc = IfmapJ.createSSRC(Configuration.ifmapUrlBasic(),
+					Configuration.ifmapBasicUser(), Configuration
+							.ifmapBasicPassword(), IfmapJHelper
+							.getTrustManagers(IronSyslogPublisher.class
+									.getResourceAsStream(Configuration
+											.keyStorePath()), Configuration
+									.keyStorePassword()));
+			mSsrc.newSession();
+		} catch (Exception e) {
+			LOGGER.error("could not connect to ifmap server", e);
+			System.exit(1);
+		}
+		LOGGER.info("Session successfully created");
 
-        LOGGER.debug("Initialising DocumentBuilder");
-        try {
-            mDocumentBuilder = DocumentBuilderFactory.newInstance()
-                    .newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        LOGGER.debug("DocumentBuilder successfully created");
-    }
+		LOGGER.debug("Initialising DocumentBuilder");
+		try {
+			mDocumentBuilder = DocumentBuilderFactory.newInstance()
+					.newDocumentBuilder();
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		LOGGER.debug("DocumentBuilder successfully created");
+	}
 
-    /**
-     * Publishes an LoginFailed as an login-failed metadata in the ifmap server.
-     * 
-     * @param event
-     *            the event to publish
-     */
-    public static void publishIfMap(Event event) {
-        LOGGER.debug("Trying to publish an unsupported event -> doing nothing. "
-                + event);
-    }
+	/**
+	 * Publishes an LoginFailed as an login-failed metadata in the ifmap server.
+	 * 
+	 * @param event
+	 *            the event to publish
+	 */
+	public static void publishIfMap(Event event) {
+		LOGGER.debug("Trying to publish an unsupported event -> doing nothing. "
+				+ event);
+	}
 
-    /**
-     * Publishes an IpMacEvent as an meta-ip-mac metadata in the ifmap server.
-     * 
-     * @param event
-     *            the event to publish
-     */
-    public static void publishIfMap(IpMacEvent event) {
-        LOGGER.debug("Publishing: " + event);
+	/**
+	 * Publishes an IpMacEvent as an meta-ip-mac metadata in the ifmap server.
+	 * 
+	 * @param event
+	 *            the event to publish
+	 */
+	public static void publishIfMap(IpMacEvent event) {
+		LOGGER.debug("Publishing: " + event);
 
-        IpAddress ip = Identifiers.createIp4(event.getIpAddress());
-        MacAddress mac = Identifiers.createMac(event.getMacAddress());
+		IpAddress ip = Identifiers.createIp4(event.getIpAddress());
+		MacAddress mac = Identifiers.createMac(event.getMacAddress());
 
-        publish(Requests.createPublishReq(Requests.createPublishUpdate(ip, mac,
-                mMf.createIpMac())));
-    }
+		publish(Requests.createPublishReq(Requests.createPublishUpdate(ip, mac,
+				mMf.createIpMac())));
+	}
 
-    /**
-     * Publishes an LoginFailedEvent as an login-failed metadata in the ifmap
-     * server.
-     * 
-     * @param event
-     *            the event to publish
-     */
-    public static void publishIfMap(AggregatedLoginFailedEvent event) {
-        try {
-            String xmlServiceIdentity = "<service name=\""
-                    + event.getServiceName() + "\" host-name=\""
-                    + event.getServiceHost()
-                    + "\" administrative-domain=\"\" xmlns=\"" + XMLNS + "\"/>";
-            String xmlLoginFailedIdentity = "<login-failed user=\""
-                    + event.getUserId() + "\" ip=\"" + event.getUserIp()
-                    + "\" service=\"" + event.getServiceName()
-                    + "\" service-host=\"" + event.getServiceHost()
-                    + "\" administrative-domain=\"\" xmlns=\"" + XMLNS
-                    + "\" />";
-            IpAddress userIp = Identifiers.createIp4(event.getUserIp());
-            Identity userName = Identifiers.createIdentity(
-                    IdentityType.userName, event.getUserId());
-            Identity service = Identifiers
-                    .createExtendedIdentity(xmlServiceIdentity);
-            Identity loginFailed = Identifiers
-                    .createExtendedIdentity(xmlLoginFailedIdentity);
+	/**
+	 * Publishes an MalwareEvent as an event metadata in the ifmap server.
+	 * 
+	 * @param event
+	 *            the event to publish
+	 */
+	public static void publishIfMap(MalwareDetectedEvent event) {
+		LOGGER.debug("Publishing: " + event);
+		Document meta = mMf.createEvent(event.getName(), event.getDiscoveredTime(),
+				event.getDiscovererId(), event.getMagnitude(),
+				event.getConfidence(), event.getSignificance(), event.getType(),
+				event.getOtherTypeDefinition(), event.getInformation(), event.getVulnerabilityUri());
 
-            if (event.getCount() > 0) {
-                LOGGER.debug("Publishing: " + event);
+		Identity dnsName = Identifiers.createIdentity(IdentityType.dnsName, event.getHost());
+		
+		publish(Requests.createPublishReq(Requests.createPublishUpdate(dnsName, meta)));
+		// mMf.createEvent("Malware Found by Windows Event Log",
+		// event.getTimestamp().toString(), "1", 0, 0, Significance.important,
+		// EventType.other, "Virus", null, null);
+		//
+		//
+		// publish(Requests.createPublishReq(Requests.createPublishUpdate(ip,
+		// mac,
+		// mMf.createIpMac())));
+	}
 
-                String xmlLoginFailedUser = "<simu:login-failed-user xmlns:simu=\""
-                        + XMLNS + "\" ifmap-cardinality=\"singleValue\" />";
-                String xmlLoginFailedId = "<simu:login-failed-id xmlns:simu=\""
-                        + XMLNS + "\" ifmap-cardinality=\"singleValue\" />";
-                String xmlLoginFailedIp = "<simu:login-failed-ip xmlns:simu=\""
-                        + XMLNS + "\" ifmap-cardinality=\"singleValue\" />";
-                String xmlLoginFailedInfo = "<simu:login-failed-info count=\""
-                        + event.getCount() + "\" xmlns:simu=\"" + XMLNS
-                        + "\" ifmap-cardinality=\"singleValue\" />";
+	/**
+	 * Publishes an LoginFailedEvent as an login-failed metadata in the ifmap
+	 * server.
+	 * 
+	 * @param event
+	 *            the event to publish
+	 */
+	public static void publishIfMap(AggregatedLoginFailedEvent event) {
+		try {
+			String xmlServiceIdentity = "<service name=\""
+					+ event.getServiceName() + "\" host-name=\""
+					+ event.getServiceHost()
+					+ "\" administrative-domain=\"\" xmlns=\"" + XMLNS + "\"/>";
+			String xmlLoginFailedIdentity = "<login-failed user=\""
+					+ event.getUserId() + "\" ip=\"" + event.getUserIp()
+					+ "\" service=\"" + event.getServiceName()
+					+ "\" service-host=\"" + event.getServiceHost()
+					+ "\" administrative-domain=\"\" xmlns=\"" + XMLNS
+					+ "\" />";
+			IpAddress userIp = Identifiers.createIp4(event.getUserIp());
+			Identity userName = Identifiers.createIdentity(
+					IdentityType.userName, event.getUserId());
+			Identity service = Identifiers
+					.createExtendedIdentity(xmlServiceIdentity);
+			Identity loginFailed = Identifiers
+					.createExtendedIdentity(xmlLoginFailedIdentity);
 
-                Document updateLoginFailedUser = createDocument(xmlLoginFailedUser);
-                Document updateLoginFailedId = createDocument(xmlLoginFailedId);
-                Document updateLoginFailedIp = createDocument(xmlLoginFailedIp);
-                Document updateLoginFailedInfo = createDocument(xmlLoginFailedInfo);
+			if (event.getCount() > 0) {
+				LOGGER.debug("Publishing: " + event);
 
-                PublishRequest update = Requests.createPublishReq();
-                update.addPublishElement(Requests.createPublishUpdate(service,
-                        loginFailed, updateLoginFailedId));
-                update.addPublishElement(Requests.createPublishUpdate(userName,
-                        loginFailed, updateLoginFailedUser));
-                update.addPublishElement(Requests.createPublishUpdate(userIp,
-                        loginFailed, updateLoginFailedIp));
-                update.addPublishElement(Requests.createPublishUpdate(
-                        loginFailed, updateLoginFailedInfo));
+				String xmlLoginFailedUser = "<simu:login-failed-user xmlns:simu=\""
+						+ XMLNS + "\" ifmap-cardinality=\"singleValue\" />";
+				String xmlLoginFailedId = "<simu:login-failed-id xmlns:simu=\""
+						+ XMLNS + "\" ifmap-cardinality=\"singleValue\" />";
+				String xmlLoginFailedIp = "<simu:login-failed-ip xmlns:simu=\""
+						+ XMLNS + "\" ifmap-cardinality=\"singleValue\" />";
+				String xmlLoginFailedInfo = "<simu:login-failed-info count=\""
+						+ event.getCount() + "\" xmlns:simu=\"" + XMLNS
+						+ "\" ifmap-cardinality=\"singleValue\" />";
 
-                publish(update);
-            } else {
-                PublishDelete pd1 = Requests.createPublishDelete(loginFailed,
-                        service);
-                PublishDelete pd2 = Requests.createPublishDelete(loginFailed,
-                        userName);
-                PublishDelete pd3 = Requests.createPublishDelete(loginFailed,
-                        userIp);
-                PublishDelete pd4 = Requests.createPublishDelete(loginFailed);
+				Document updateLoginFailedUser = createDocument(xmlLoginFailedUser);
+				Document updateLoginFailedId = createDocument(xmlLoginFailedId);
+				Document updateLoginFailedIp = createDocument(xmlLoginFailedIp);
+				Document updateLoginFailedInfo = createDocument(xmlLoginFailedInfo);
 
-                PublishRequest del = Requests.createPublishReq();
-                del.addPublishElement(pd1);
-                del.addPublishElement(pd2);
-                del.addPublishElement(pd3);
-                del.addPublishElement(pd4);
+				PublishRequest update = Requests.createPublishReq();
+				update.addPublishElement(Requests.createPublishUpdate(service,
+						loginFailed, updateLoginFailedId));
+				update.addPublishElement(Requests.createPublishUpdate(userName,
+						loginFailed, updateLoginFailedUser));
+				update.addPublishElement(Requests.createPublishUpdate(userIp,
+						loginFailed, updateLoginFailedIp));
+				update.addPublishElement(Requests.createPublishUpdate(
+						loginFailed, updateLoginFailedInfo));
 
-                publish(del);
-            }
-        } catch (IfmapException e) {
-            LOGGER.error("Error while creating extended identifiers.", e);
-        }
-    }
+				publish(update);
+			} else {
+				PublishDelete pd1 = Requests.createPublishDelete(loginFailed,
+						service);
+				PublishDelete pd2 = Requests.createPublishDelete(loginFailed,
+						userName);
+				PublishDelete pd3 = Requests.createPublishDelete(loginFailed,
+						userIp);
+				PublishDelete pd4 = Requests.createPublishDelete(loginFailed);
 
-    /**
-     * Encapsulates the publish and error handling
-     * 
-     * @param req
-     *            the request to publish
-     */
-    private static void publish(PublishRequest req) {
-        try {
-            mSsrc.publish(req);
-            LOGGER.debug("Publish successful");
-        } catch (IfmapErrorResult e) {
-            LOGGER.error("Error while publishing: " + e.getMessage());
-        } catch (IfmapException e) {
-            LOGGER.error("Error while publishing: " + e.getMessage());
-        }
-    }
+				PublishRequest del = Requests.createPublishReq();
+				del.addPublishElement(pd1);
+				del.addPublishElement(pd2);
+				del.addPublishElement(pd3);
+				del.addPublishElement(pd4);
 
-    /**
-     * Creates a W3C Document for a given XML String
-     * 
-     * @param xml
-     *            The xml to parse
-     * @return The corresponding document
-     */
-    private static Document createDocument(String xml) {
-        try {
-            StringReader reader = new StringReader(xml);
-            InputSource input = new InputSource(reader);
-            return mDocumentBuilder.parse(input);
-        } catch (SAXException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return null;
+				publish(del);
+			}
+		} catch (IfmapException e) {
+			LOGGER.error("Error while creating extended identifiers.", e);
+		}
+	}
 
-    }
+	/**
+	 * Encapsulates the publish and error handling
+	 * 
+	 * @param req
+	 *            the request to publish
+	 */
+	private static void publish(PublishRequest req) {
+		try {
+			mSsrc.publish(req);
+			LOGGER.debug("Publish successful");
+		} catch (IfmapErrorResult e) {
+			LOGGER.error("Error while publishing: " + e.getMessage());
+		} catch (IfmapException e) {
+			LOGGER.error("Error while publishing: " + e.getMessage());
+		}
+	}
+
+	/**
+	 * Creates a W3C Document for a given XML String
+	 * 
+	 * @param xml
+	 *            The xml to parse
+	 * @return The corresponding document
+	 */
+	private static Document createDocument(String xml) {
+		try {
+			StringReader reader = new StringReader(xml);
+			InputSource input = new InputSource(reader);
+			return mDocumentBuilder.parse(input);
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+
+	}
 }

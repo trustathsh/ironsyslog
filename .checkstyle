@@ -2,7 +2,7 @@
 
 <fileset-config file-format-version="1.2.0" simple-config="false" sync-formatter="false">
   <local-check-config name="HsH" location="http://trust.f4.hs-hannover.de/download/dev_docs/code_conventions/trustHsHCodeconventions.xml" type="remote" description="">
-    <property name="headerfile" value="/home/trustathsh/workspace/ironsyslog/src/license/dummy/Dummy.java"/>
+    <property name="headerfile" value="/home/leo/work/workspace/ironsyslog/src/license/dummy/Dummy.java"/>
     <property name="checkstyle.cache.file" value="meow"/>
     <additional-data name="cache-file" value="false"/>
   </local-check-config>

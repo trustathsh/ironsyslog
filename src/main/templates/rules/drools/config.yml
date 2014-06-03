@@ -9,6 +9,7 @@
 serviceInclude:
   - sshd
   - dnsmasq-dhcp
+  - win-malware
 
 # Publish rules in the publish/ folder to be excluded
 publishExclude:
