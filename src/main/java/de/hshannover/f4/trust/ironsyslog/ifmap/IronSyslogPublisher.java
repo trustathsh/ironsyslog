@@ -52,8 +52,8 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import de.hshannover.f4.trust.ifmapj.IfmapJ;
-import de.hshannover.f4.trust.ifmapj.IfmapJHelper;
 import de.hshannover.f4.trust.ifmapj.channel.SSRC;
+import de.hshannover.f4.trust.ifmapj.config.BasicAuthConfig;
 import de.hshannover.f4.trust.ifmapj.exception.IfmapErrorResult;
 import de.hshannover.f4.trust.ifmapj.exception.IfmapException;
 import de.hshannover.f4.trust.ifmapj.identifier.Identifiers;
@@ -103,13 +103,13 @@ public final class IronSyslogPublisher {
 	public static void init() {
 		LOGGER.info("Initialisiing Session using basic authentication");
 		try {
-			mSsrc = IfmapJ.createSSRC(Configuration.ifmapUrlBasic(),
-					Configuration.ifmapBasicUser(), Configuration
-							.ifmapBasicPassword(), IfmapJHelper
-							.getTrustManagers(IronSyslogPublisher.class
-									.getResourceAsStream(Configuration
-											.keyStorePath()), Configuration
-									.keyStorePassword()));
+			BasicAuthConfig config = new BasicAuthConfig(
+					Configuration.ifmapUrlBasic(),
+					Configuration.ifmapBasicUser(),
+					Configuration.ifmapBasicPassword(),
+					Configuration.keyStorePath(),
+					Configuration.keyStorePassword());
+			mSsrc = IfmapJ.createSsrc(config);
 			mSsrc.newSession();
 		} catch (Exception e) {
 			LOGGER.error("could not connect to ifmap server", e);
